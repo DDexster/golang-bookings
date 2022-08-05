@@ -7,10 +7,10 @@
   <p>And This is came from a string map: {{index .StringMap "test"}}</p>
 
   <p>
-    {{if ne (index .StringMap "remote_ip") ""}}
-      Your Remote IP Adress: {{index .StringMap "remote_ip"}}
-    {{else}}
-      Have Your IP Address Yet, visit <a href="/">home page</a>
-    {{end}}
+      {{if ne (index .StringMap "remote_ip") ""}}
+        Your Remote IP Adress: {{index .StringMap "remote_ip"}}
+      {{else}}
+        Have Your IP Address Yet, visit <a href="/">home page</a>
+      {{end}}
   </p>
 {{end}}

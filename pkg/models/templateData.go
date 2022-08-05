@@ -1,6 +1,6 @@
 package models
 
-// Holds data for templates
+// TemplateData Holds data for templates
 type TemplateData struct {
 	StringMap map[string]string
 	IntMap    map[int]int
