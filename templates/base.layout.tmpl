@@ -195,34 +195,47 @@
                   title = "",
               } = c;
 
-              const {value: formValues} = await Swal.fire({
+              const {value: result} = await Swal.fire({
                   title: title,
                   html: msg,
                   backdrop: false,
                   focusConfirm: false,
                   showCancelButton: true,
                   willOpen: () => {
-                      const elem = document.getElementById("reservation-dates-modal");
-                      const rp = new DateRangePicker(elem, {
-                          format: 'yyyy-mm-dd',
-                          showOnFocus: true,
-                      })
+                      if (!!c.willOpen) {
+                          c.willOpen();
+                      }
                   },
                   didOpen: () => {
-                      document.getElementById("start").removeAttribute("disabled");
-                      document.getElementById("end").removeAttribute("disabled");
+                      if (!!c.didOpen) {
+                          c.didOpen();
+                      }
                   },
                   preConfirm: () => {
-                      return [
-                          document.getElementById('start').value,
-                          document.getElementById('end').value
-                      ]
+                      if (!!c.preConfirm) {
+                          c.preConfirm();
+                      }
                   }
               })
 
-              if (formValues) {
-                  Swal.fire(JSON.stringify(formValues))
+              if (!!result) {
+                  if (result.dismiss !== Swal.DismissReason.cancel) {
+                      if (result.value !== "") {
+                          if (c.callback !== undefined) {
+                              c.callback(result)
+                          }
+                      } else {
+                          if (c.callback !== undefined) {
+                              c.callback(false)
+                          }
+                      }
+                  } else {
+                      if (c.callback !== undefined) {
+                          c.callback(false)
+                      }
+                  }
               }
+
           }
 
           return {

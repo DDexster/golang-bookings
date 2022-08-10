@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/DDexster/golang_bookings/internal/config"
+	"github.com/DDexster/golang_bookings/internal/handlers"
+	"github.com/DDexster/golang_bookings/internal/renderer"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/DDexster/golang_bookings/pkg/config"
-	"github.com/DDexster/golang_bookings/pkg/handlers"
-	"github.com/DDexster/golang_bookings/pkg/renderer"
 	"github.com/alexedwards/scs/v2"
 )
 

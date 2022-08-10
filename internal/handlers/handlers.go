@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
+	"github.com/DDexster/golang_bookings/internal/config"
+	"github.com/DDexster/golang_bookings/internal/models"
+	"github.com/DDexster/golang_bookings/internal/renderer"
+	"log"
 	"net/http"
-
-	"github.com/DDexster/golang_bookings/pkg/config"
-	"github.com/DDexster/golang_bookings/pkg/models"
-	"github.com/DDexster/golang_bookings/pkg/renderer"
 )
 
 var Repo *Repository
@@ -32,7 +33,7 @@ func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
 
 	remoteIP := r.RemoteAddr
 	repo.App.Session.Put(r.Context(), "remote_ip", remoteIP)
-	renderer.RenderTemplate(w, "home.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "home.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
@@ -46,7 +47,7 @@ func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 	remoteIP := repo.App.Session.GetString(r.Context(), "remote_ip")
 	stringMap["remote_ip"] = remoteIP
 
-	renderer.RenderTemplate(w, "about.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "about.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
@@ -56,7 +57,7 @@ func (repo *Repository) Generals(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "General's Quarters"
 
-	renderer.RenderTemplate(w, "generals.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "generals.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
@@ -66,7 +67,7 @@ func (repo *Repository) Majors(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "Major's Suite"
 
-	renderer.RenderTemplate(w, "majors.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "majors.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
@@ -76,7 +77,7 @@ func (repo *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "Reservation"
 
-	renderer.RenderTemplate(w, "make-reservation.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
@@ -86,9 +87,37 @@ func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Reques
 
 	stringMap["pageTitle"] = "Search Availability"
 
-	renderer.RenderTemplate(w, "search-availability.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "search-availability.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
+}
+
+func (repo *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
+	startDate := r.Form.Get("start")
+	endDate := r.Form.Get("end")
+	w.Write([]byte("Posted to search availability from " + startDate + " to " + endDate))
+}
+
+type jsonResponse struct {
+	OK      bool   `json:"ok"`
+	Message string `json:"message"`
+}
+
+func (repo *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
+	resp := jsonResponse{
+		OK:      true,
+		Message: "Available!",
+	}
+
+	out, err := json.MarshalIndent(resp, "", "  ")
+	if err != nil {
+		log.Println(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(out)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (repo *Repository) Contact(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +125,7 @@ func (repo *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "Contact Us"
 
-	renderer.RenderTemplate(w, "contact.page.tmpl", &models.TemplateData{
+	renderer.RenderTemplate(w, r, "contact.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
