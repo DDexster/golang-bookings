@@ -50,3 +50,53 @@ func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 		StringMap: stringMap,
 	})
 }
+
+func (repo *Repository) Generals(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "General's Quarters"
+
+	renderer.RenderTemplate(w, "generals.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
+}
+
+func (repo *Repository) Majors(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "Major's Suite"
+
+	renderer.RenderTemplate(w, "majors.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
+}
+
+func (repo *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "Reservation"
+
+	renderer.RenderTemplate(w, "make-reservation.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
+}
+
+func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "Search Availability"
+
+	renderer.RenderTemplate(w, "search-availability.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
+}
+
+func (repo *Repository) Contact(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "Contact Us"
+
+	renderer.RenderTemplate(w, "contact.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
+}
