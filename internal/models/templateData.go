@@ -1,5 +1,7 @@
 package models
 
+import "github.com/DDexster/golang_bookings/internal/forms"
+
 // TemplateData Holds data for templates
 type TemplateData struct {
 	StringMap map[string]string
@@ -10,4 +12,5 @@ type TemplateData struct {
 	Flash     string
 	Warning   string
 	Error     string
+	Form      *forms.Form
 }

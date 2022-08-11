@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/gob"
 	"github.com/DDexster/golang_bookings/internal/config"
 	"github.com/DDexster/golang_bookings/internal/handlers"
+	"github.com/DDexster/golang_bookings/internal/models"
 	"github.com/DDexster/golang_bookings/internal/renderer"
 	"log"
 	"net/http"
@@ -17,6 +19,8 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
+	gob.Register(models.Reservation{})
+
 	app.UseCache = false
 	app.InProduction = false
 
