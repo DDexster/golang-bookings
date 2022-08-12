@@ -5,6 +5,7 @@ import (
 	"github.com/DDexster/golang_bookings/internal/config"
 	"github.com/DDexster/golang_bookings/internal/models"
 	"github.com/alexedwards/scs/v2"
+	"log"
 	"net/http"
 	"os"
 	"testing"
@@ -27,6 +28,12 @@ func TestMain(m *testing.M) {
 	session.Cookie.Secure = false
 
 	testApp.Session = session
+
+	infoLog := log.New(os.Stdout, "INFO:\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stdout, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	testApp.InfoLog = infoLog
+	testApp.ErrorLog = errorLog
 
 	app = &testApp
 
