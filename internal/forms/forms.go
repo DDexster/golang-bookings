@@ -3,7 +3,6 @@ package forms
 import (
 	"fmt"
 	"github.com/asaskevich/govalidator"
-	"net/http"
 	"net/url"
 	"strings"
 )
@@ -29,8 +28,8 @@ func (f *Form) Required(fields ...string) {
 	}
 }
 
-func (f *Form) Has(field string, e *http.Request) bool {
-	x := e.Form.Get(field)
+func (f *Form) Has(field string) bool {
+	x := f.Values[field][0]
 	return x != ""
 }
 

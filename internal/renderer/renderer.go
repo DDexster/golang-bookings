@@ -2,16 +2,20 @@ package renderer
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"github.com/DDexster/golang_bookings/internal/config"
 	"github.com/DDexster/golang_bookings/internal/models"
 	"github.com/justinas/nosurf"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 )
 
+var functions = template.FuncMap{}
+
 var app *config.AppConfig
+var pathToTmpl = "./templates"
 
 func NewTemplates(a *config.AppConfig) {
 	app = a
@@ -26,7 +30,7 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	return td
 }
 
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) error {
 	var tc map[string]*template.Template
 	if app.UseCache {
 		tc = app.TemplateCache
@@ -36,7 +40,7 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal("Error getting template")
+		return errors.New("error getting template from cache")
 	}
 
 	buf := new(bytes.Buffer)
@@ -46,38 +50,40 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 	err := t.Execute(buf, td)
 
 	if err != nil {
-		log.Println("Error executing template", err)
+		return err
 	}
 
 	_, err = buf.WriteTo(w)
 
 	if err != nil {
-		log.Println("Error writing template", err)
+		return err
 	}
+
+	return nil
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := make(map[string]*template.Template)
 
-	tmplFiles, err := filepath.Glob("./templates/*.page.tmpl")
+	tmplFiles, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTmpl))
 	if err != nil {
 		return myCache, err
 	}
 
 	for _, tmpl := range tmplFiles {
 		name := filepath.Base(tmpl)
-		ts, err := template.New(name).ParseFiles(tmpl)
+		ts, err := template.New(name).Funcs(functions).ParseFiles(tmpl)
 		if err != nil {
 			return myCache, err
 		}
 
-		matches, err := filepath.Glob("./templates/*.layout.tmpl")
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.tmpl", pathToTmpl))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.tmpl", pathToTmpl))
 			if err != nil {
 				return myCache, err
 			}
