@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"github.com/DDexster/golang_bookings/internal/config"
+	"github.com/DDexster/golang_bookings/internal/driver"
 	"github.com/DDexster/golang_bookings/internal/handlers"
 	"github.com/DDexster/golang_bookings/internal/helpers"
 	"github.com/DDexster/golang_bookings/internal/models"
@@ -23,11 +24,12 @@ var infoLog *log.Logger
 var errorLog *log.Logger
 
 func main() {
-	err := run()
-
+	db, err := run()
 	if err != nil {
 		log.Fatal("Error starting app", err)
 	}
+
+	defer db.SQL.Close()
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -38,8 +40,12 @@ func main() {
 	log.Fatal(err)
 }
 
-func run() error {
+func run() (*driver.DB, error) {
 	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.Restriction{})
+	gob.Register(models.RoomRestriction{})
 
 	app.UseCache = false
 	app.InProduction = false
@@ -58,19 +64,27 @@ func run() error {
 
 	app.Session = session
 
+	// connect to DB
+	log.Println("Connecting to DB")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=ddexster password=")
+	if err != nil {
+		log.Fatal("Cannot connect to DB")
+	}
+	log.Println("Connected to DB")
+
 	tc, err := renderer.CreateTemplateCache()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	app.TemplateCache = tc
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
 
 	helpers.NewHelpers(&app)
+	renderer.NewRenderer(&app)
 
-	renderer.NewTemplates(&app)
-	return nil
+	return db, nil
 }

@@ -3,10 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/DDexster/golang_bookings/internal/config"
+	"github.com/DDexster/golang_bookings/internal/driver"
 	"github.com/DDexster/golang_bookings/internal/forms"
 	"github.com/DDexster/golang_bookings/internal/helpers"
 	"github.com/DDexster/golang_bookings/internal/models"
 	"github.com/DDexster/golang_bookings/internal/renderer"
+	"github.com/DDexster/golang_bookings/internal/repository"
+	"github.com/DDexster/golang_bookings/internal/repository/dbrepo"
 	"net/http"
 )
 
@@ -14,12 +17,14 @@ var Repo *Repository
 
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
@@ -32,7 +37,7 @@ func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	stringMap := make(map[string]string)
 	stringMap["pageTitle"] = "Home Page"
 
-	err := renderer.RenderTemplate(w, r, "home.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "home.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 	if err != nil {
@@ -49,7 +54,7 @@ func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 	remoteIP := repo.App.Session.GetString(r.Context(), "remote_ip")
 	stringMap["remote_ip"] = remoteIP
 
-	err := renderer.RenderTemplate(w, r, "about.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "about.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 	if err != nil {
@@ -62,7 +67,7 @@ func (repo *Repository) Generals(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "General's Quarters"
 
-	err := renderer.RenderTemplate(w, r, "generals.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "generals.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 
@@ -76,7 +81,7 @@ func (repo *Repository) Majors(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "Major's Suite"
 
-	err := renderer.RenderTemplate(w, r, "majors.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "majors.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 	if err != nil {
@@ -93,7 +98,7 @@ func (repo *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 	data["reservation"] = emptyReservation
 
-	err := renderer.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 		Form:      forms.New(nil),
 		Data:      data,
@@ -133,7 +138,7 @@ func (repo *Repository) PostReservation(w http.ResponseWriter, r *http.Request) 
 
 		stringMap["pageTitle"] = "Reservation"
 
-		err = renderer.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+		err = renderer.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 			StringMap: stringMap,
 			Form:      form,
 			Data:      data,
@@ -153,7 +158,7 @@ func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Reques
 
 	stringMap["pageTitle"] = "Search Availability"
 
-	err := renderer.RenderTemplate(w, r, "search-availability.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "search-availability.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 
@@ -196,7 +201,7 @@ func (repo *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 
 	stringMap["pageTitle"] = "Contact Us"
 
-	err := renderer.RenderTemplate(w, r, "contact.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "contact.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
 
@@ -222,7 +227,7 @@ func (repo *Repository) ReservationSummary(w http.ResponseWriter, r *http.Reques
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
 
-	err := renderer.RenderTemplate(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
+	err := renderer.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 		Data:      data,
 	})
