@@ -11,6 +11,8 @@ import (
 	"github.com/DDexster/golang_bookings/internal/repository"
 	"github.com/DDexster/golang_bookings/internal/repository/dbrepo"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 var Repo *Repository
@@ -48,7 +50,6 @@ func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
 func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 	stringMap := make(map[string]string)
 
-	stringMap["test"] = "This is only a test...."
 	stringMap["pageTitle"] = "About Page"
 
 	remoteIP := repo.App.Session.GetString(r.Context(), "remote_ip")
@@ -116,11 +117,33 @@ func (repo *Repository) PostReservation(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	sd := r.Form.Get("start_date")
+	ed := r.Form.Get("end_date")
+
+	dateLayout := "2006-01-02"
+	startDate, err := time.Parse(dateLayout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(dateLayout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	roomId, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 	reservation := models.Reservation{
 		FirstName: r.Form.Get("first_name"),
 		LastName:  r.Form.Get("last_name"),
 		Email:     r.Form.Get("email"),
 		Phone:     r.Form.Get("phone"),
+		StartDate: startDate,
+		EndDate:   endDate,
+		RoomID:    roomId,
 	}
 
 	form := forms.New(r.PostForm)
@@ -146,6 +169,28 @@ func (repo *Repository) PostReservation(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			helpers.ServerError(w, err)
 		}
+		return
+	}
+
+	reservationId, err := repo.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	repo.App.InfoLog.Println("Reservation ID: ", reservationId)
+
+	restriction := models.RoomRestriction{
+		RoomID:        roomId,
+		ReservationID: reservationId,
+		RestrictionID: 1,
+		StartDate:     startDate,
+		EndDate:       endDate,
+	}
+
+	err = repo.DB.InsertRoomRestriction(restriction)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
