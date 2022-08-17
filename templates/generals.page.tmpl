@@ -32,67 +32,17 @@
 
     <div class="row">
       <div class="col text-center">
-        <a id="check-availability-button" href="#!" class="btn btn-success">Check Availability</a>
+        <button
+                onclick="showAvailabilityModal(1, {{.CSRFToken}});"
+                class="btn btn-success"
+        >
+          Check Availability
+        </button>
       </div>
     </div>
   </div>
 {{end}}
 
 {{define "js"}}
-  <script>
-      const btn = document.getElementById("check-availability-button")
-      if (!!btn) {
-          btn.addEventListener("click", () => {
-              let html = `
-        <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
-            <div class="form-row">
-                <div class="col">
-                    <div class="form-row" id="reservation-dates-modal">
-                        <div class="col">
-                            <input disabled required class="form-control" type="text" name="start" id="start" placeholder="Arrival">
-                        </div>
-                        <div class="col">
-                            <input disabled required class="form-control" type="text" name="end" id="end" placeholder="Departure">
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </form>
-        `;
-              attention.custom({
-                  title: 'Choose your dates',
-                  msg: html,
-                  willOpen: () => {
-                      const elem = document.getElementById("reservation-dates-modal");
-                      const rp = new DateRangePicker(elem, {
-                          format: 'yyyy-mm-dd',
-                          showOnFocus: true,
-                      })
-                  },
-                  didOpen: () => {
-                      document.getElementById("start").removeAttribute("disabled");
-                      document.getElementById("end").removeAttribute("disabled");
-                  },
-                  preConfirm: () => [
-                      document.getElementById('start').value,
-                      document.getElementById('end').value
-                  ],
-                  callback: (res) => {
-                      const form = document.getElementById("check-availability-form");
-                      const formData = new FormData(form)
-                      formData.append("csrf_token", "{{.CSRFToken}}")
-                      fetch('/search-availability-json', {
-                          method: 'POST',
-                          body: formData
-                      })
-                          .then(resp => resp.json())
-                          .then(data => {
-                              console.log({data})
-                          })
-                  }
-              });
-          })
-      }
-  </script>
+  <script src="/static/js/room-booking-modal.js"></script>
 {{end}}
