@@ -2,8 +2,10 @@ package dbrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/DDexster/golang_bookings/internal/models"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -145,4 +147,78 @@ func (repo *postgresDBRepo) GetRoomById(id int) (models.Room, error) {
 		return room, err
 	}
 	return room, nil
+}
+
+func (repo *postgresDBRepo) GetUserById(id int) (models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var user models.User
+
+	stmt := `select id, first_name, last_name, email, password, access_level
+		from users
+		where id = $1
+	`
+	row := repo.DB.QueryRowContext(ctx, stmt, id)
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.AccessLevel)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (repo *postgresDBRepo) GetUserByEmail(email string) (models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var user models.User
+
+	stmt := `select id, first_name, last_name, email, password, access_level
+		from users
+		where email = $1
+	`
+	row := repo.DB.QueryRowContext(ctx, stmt, email)
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.AccessLevel)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (repo *postgresDBRepo) UpdateUser(u models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmt := `update users set first_name = $1, last_name = $2, email = $3, access_level = $4, updated_at = $5
+		where id = $6
+	`
+	_, err := repo.DB.ExecContext(ctx, stmt,
+		u.FirstName, u.LastName, u.Email, u.AccessLevel, time.Now(), u.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *postgresDBRepo) Authenticate(email string, password string) (int, string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var id int
+	var hashedPass string
+
+	row := repo.DB.QueryRowContext(ctx, "select id, password from users where email = $1", email)
+	err := row.Scan(&id, &hashedPass)
+	if err != nil {
+		return id, "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return 0, "", errors.New("incorrect password")
+	} else if err != nil {
+		return 0, "", err
+	}
+
+	return id, hashedPass, nil
 }

@@ -61,3 +61,19 @@ func (repo *testDBRepo) GetRoomById(id int) (models.Room, error) {
 	}
 	return room, nil
 }
+
+func (repo *testDBRepo) GetUserById(id int) (models.User, error) {
+	return models.User{}, nil
+}
+
+func (repo *testDBRepo) GetUserByEmail(email string) (models.User, error) {
+	return models.User{}, nil
+}
+
+func (repo *testDBRepo) UpdateUser(u models.User) error {
+	return nil
+}
+
+func (repo *testDBRepo) Authenticate(email string, password string) (int, string, error) {
+	return 1, "sdasdasdasdasda", nil
+}

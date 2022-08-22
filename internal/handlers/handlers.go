@@ -485,3 +485,78 @@ func (repo *Repository) BookRoom(w http.ResponseWriter, r *http.Request) {
 	repo.App.Session.Put(r.Context(), "reservation", reservation)
 	http.Redirect(w, r, "/reservation", http.StatusSeeOther)
 }
+
+func (repo *Repository) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "Login"
+
+	err := renderer.Template(w, r, "login.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+		Form:      forms.New(nil),
+	})
+
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+}
+
+func (repo *Repository) PostShowLogin(w http.ResponseWriter, r *http.Request) {
+	_ = repo.App.Session.RenewToken(r.Context())
+
+	userEmail := r.Form.Get("email")
+	userPass := r.Form.Get("password")
+
+	form := forms.New(r.PostForm)
+
+	form.Required("email", "password")
+	form.IsEmail("email")
+
+	if !form.Valid() {
+		stringMap := make(map[string]string)
+		stringMap["pageTitle"] = "Login"
+
+		err := renderer.Template(w, r, "login.page.tmpl", &models.TemplateData{
+			StringMap: stringMap,
+			Form:      form,
+			Error:     "Form Is Not Valid!",
+		})
+		if err != nil {
+			helpers.ServerError(w, err)
+		}
+		return
+	}
+
+	userId, _, err := repo.DB.Authenticate(userEmail, userPass)
+
+	if err != nil {
+		repo.App.ErrorLog.Println("Failed, to authenticate user with email", userEmail, "error", err)
+		repo.App.Session.Put(r.Context(), "error", "Invalid Credentials!")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	repo.App.Session.Put(r.Context(), "user_id", userId)
+	repo.App.Session.Put(r.Context(), "flash", "Login Success")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (repo *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = repo.App.Session.Destroy(r.Context())
+	_ = repo.App.Session.RenewToken(r.Context())
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (repo *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+
+	stringMap["pageTitle"] = "Admin Dashboard"
+
+	err := renderer.Template(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+	})
+
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+}
