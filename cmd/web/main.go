@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"github.com/DDexster/golang_bookings/internal/config"
 	"github.com/DDexster/golang_bookings/internal/driver"
 	"github.com/DDexster/golang_bookings/internal/handlers"
@@ -29,8 +30,13 @@ func main() {
 		log.Fatal("Error starting app", err)
 	}
 
+	defer close(app.MailChan)
 	defer db.SQL.Close()
 
+	log.Println("Email server listening...")
+	listenForMail()
+
+	fmt.Println(fmt.Sprintf("Starting application on port %s", portNumber))
 	srv := &http.Server{
 		Addr:    portNumber,
 		Handler: routes(&app),
@@ -46,6 +52,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
 	gob.Register(models.RoomRestriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	app.UseCache = false
 	app.InProduction = false

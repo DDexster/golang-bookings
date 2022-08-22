@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/DDexster/golang_bookings/internal/models"
 	"html/template"
 	"log"
 
@@ -12,6 +13,7 @@ type AppConfig struct {
 	TemplateCache map[string]*template.Template
 	InProduction  bool
 	Session       *scs.SessionManager
+	MailChan      chan models.MailData
 	InfoLog       *log.Logger
 	ErrorLog      *log.Logger
 }

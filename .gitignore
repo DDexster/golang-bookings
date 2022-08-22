@@ -3,3 +3,4 @@
 database.yml
 bookings
 migrations/schema.sql
+coverage.out

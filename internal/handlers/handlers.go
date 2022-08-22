@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/DDexster/golang_bookings/internal/config"
 	"github.com/DDexster/golang_bookings/internal/driver"
 	"github.com/DDexster/golang_bookings/internal/forms"
@@ -200,6 +201,38 @@ func (repo *Repository) PostReservation(w http.ResponseWriter, r *http.Request) 
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	// Send confirm mails
+	dateLayout := "2006-01-02"
+	userMessage := fmt.Sprintf(`
+		<strong>Reservation Succeed!</strong><br>
+		<p>Hi, %s %s!</p>
+		<p>Your Reservation for room <strong>%s</strong>, from %s to %s, has been placed!</p>
+	`, reservation.FirstName, reservation.LastName, reservation.Room.RoomName, reservation.StartDate.Format(dateLayout), reservation.EndDate.Format(dateLayout))
+
+	adminMessage := fmt.Sprintf(`
+		<strong>New Reservation!</strong><br>
+		<p>A reservation has been made from %s %s (%s). Room %s, from %s to %s</p>
+	`, reservation.FirstName, reservation.LastName, reservation.Email, reservation.Room.RoomName, reservation.StartDate.Format(dateLayout), reservation.EndDate.Format(dateLayout))
+
+	userMail := models.MailData{
+		To:       reservation.Email,
+		From:     "oficial@boonkings.here",
+		Subject:  "Reservation Success!",
+		Content:  userMessage,
+		Template: "reservation.html",
+	}
+
+	adminMail := models.MailData{
+		To:       "admin@boonkings.here",
+		From:     "oficial@boonkings.here",
+		Subject:  "New Reservation!",
+		Content:  adminMessage,
+		Template: "reservation.html",
+	}
+
+	repo.App.MailChan <- userMail
+	repo.App.MailChan <- adminMail
 
 	repo.App.Session.Put(r.Context(), "reservation", reservation)
 	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)

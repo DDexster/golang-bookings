@@ -42,6 +42,12 @@ func TestMain(m *testing.M) {
 
 	app.Session = session
 
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
+	defer close(mailChan)
+
+	listenForMail()
+
 	infoLog := log.New(os.Stdout, "INFO:\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile)
 
@@ -92,6 +98,14 @@ func getRoutes() http.Handler {
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
 	return mux
+}
+
+func listenForMail() {
+	go func() {
+		for {
+			_ = <-app.MailChan
+		}
+	}()
 }
 
 func SessionLoad(next http.Handler) http.Handler {
