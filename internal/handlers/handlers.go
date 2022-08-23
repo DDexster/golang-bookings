@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -548,12 +549,87 @@ func (repo *Repository) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (repo *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	err := renderer.Template(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{})
+
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+}
+
+func (repo *Repository) AdminNewReservations(w http.ResponseWriter, r *http.Request) {
+	reservations, err := repo.DB.ListNewReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+
+	data["reservations"] = reservations
+
+	err = renderer.Template(w, r, "admin-new-reservations.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+}
+
+func (repo *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request) {
+	reservations, err := repo.DB.ListAllReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]interface{})
+
+	data["reservations"] = reservations
+
+	err = renderer.Template(w, r, "admin-all-reservations.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+}
+
+func (repo *Repository) AdminReservationCalendar(w http.ResponseWriter, r *http.Request) {
+	err := renderer.Template(w, r, "admin-reservations-calendar.page.tmpl", &models.TemplateData{})
+
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+}
+
+func (repo *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request) {
+	exploded := strings.Split(r.RequestURI, "/")
+
+	src := exploded[len(exploded)-2]
+
+	id, err := strconv.Atoi(exploded[len(exploded)-1])
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	reservation, err := repo.DB.GetReservationById(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 	stringMap := make(map[string]string)
+	data := make(map[string]interface{})
 
-	stringMap["pageTitle"] = "Admin Dashboard"
+	data["reservation"] = reservation
+	stringMap["src"] = src
 
-	err := renderer.Template(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{
+	err = renderer.Template(w, r, "admin-reservation.page.tmpl", &models.TemplateData{
+		Data:      data,
 		StringMap: stringMap,
+		Form:      forms.New(nil),
 	})
 
 	if err != nil {

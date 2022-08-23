@@ -39,7 +39,7 @@
              aria-haspopup="true" aria-expanded="false">
             Rooms
           </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink2">
             <a class="dropdown-item" href="/generals-quarters">General's Quarters</a>
             <a class="dropdown-item" href="/majors-suite">Major's Suite</a>
           </div>
@@ -50,13 +50,23 @@
         <li class="nav-item">
           <a class="nav-link" href="/contact">Contact</a>
         </li>
-        <li class="nav-item">
-            {{if eq .IsAuthenticated 1}}
-              <a class="nav-link" href="/user/logout">Log Out</a>
-            {{else}}
+          {{if eq .IsAuthenticated 1}}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink2" role="button"
+                 data-toggle="dropdown"
+                 aria-haspopup="true" aria-expanded="false">
+                Admin
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink2">
+                <a class="dropdown-item" href="/admin/dashboard">Dashboard</a>
+                <a class="dropdown-item" href="/user/login">Logout</a>
+              </div>
+            </li>
+          {{else}}
+            <li class="nav-item">
               <a class="nav-link" href="/user/login">Login</a>
-            {{end}}
-        </li>
+            </li>
+          {{end}}
 
       </ul>
     </div>

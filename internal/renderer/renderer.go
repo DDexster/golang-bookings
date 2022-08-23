@@ -10,9 +10,12 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 )
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"humanizeDate": HumanizeDate,
+}
 
 var app *config.AppConfig
 var pathToTmpl = "./templates"
@@ -95,4 +98,9 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		myCache[name] = ts
 	}
 	return myCache, nil
+}
+
+func HumanizeDate(t time.Time) string {
+	dateFormat := "2006-01-02"
+	return t.Format(dateFormat)
 }
