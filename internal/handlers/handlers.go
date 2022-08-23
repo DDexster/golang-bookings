@@ -675,3 +675,39 @@ func (repo *Repository) AdminUpdateReservation(w http.ResponseWriter, r *http.Re
 	repo.App.Session.Put(r.Context(), "flash", "Reservation Updated")
 	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 }
+
+func (repo *Repository) AdminProcessReservation(w http.ResponseWriter, r *http.Request) {
+	src := chi.URLParam(r, "src")
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	err = repo.DB.UpdateProcessedForReservation(id, 1)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	repo.App.Session.Put(r.Context(), "flash", "Reservation Processed!")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}
+
+func (repo *Repository) AdminRemoveReservation(w http.ResponseWriter, r *http.Request) {
+	src := chi.URLParam(r, "src")
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	err = repo.DB.RemoveReservation(id)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	repo.App.Session.Put(r.Context(), "flash", "Reservation Removed!")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}

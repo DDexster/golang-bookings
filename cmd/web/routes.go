@@ -52,6 +52,8 @@ func routes(app *config.AppConfig) http.Handler {
 		m.Get("/reservations-all", handlers.Repo.AdminAllReservations)
 		m.Get("/reservations-calendar", handlers.Repo.AdminReservationCalendar)
 
+		m.Get("/process-reservation/{src}/{id}", handlers.Repo.AdminProcessReservation)
+		m.Get("/remove-reservation/{src}/{id}", handlers.Repo.AdminRemoveReservation)
 		m.Get("/reservations/{src}/{id}", handlers.Repo.AdminShowReservation)
 		m.Post("/reservations/{src}/{id}", handlers.Repo.AdminUpdateReservation)
 	})
