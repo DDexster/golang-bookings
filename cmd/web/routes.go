@@ -53,6 +53,7 @@ func routes(app *config.AppConfig) http.Handler {
 		m.Get("/reservations-calendar", handlers.Repo.AdminReservationCalendar)
 
 		m.Get("/reservations/{src}/{id}", handlers.Repo.AdminShowReservation)
+		m.Post("/reservations/{src}/{id}", handlers.Repo.AdminUpdateReservation)
 	})
 
 	return mux
