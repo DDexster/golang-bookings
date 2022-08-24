@@ -15,6 +15,8 @@ import (
 
 var functions = template.FuncMap{
 	"humanizeDate": HumanizeDate,
+	"formatDate":   FormatDate,
+	"iterate":      Iterate,
 }
 
 var app *config.AppConfig
@@ -103,4 +105,16 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 func HumanizeDate(t time.Time) string {
 	dateFormat := "2006-01-02"
 	return t.Format(dateFormat)
+}
+
+func FormatDate(t time.Time, f string) string {
+	return t.Format(f)
+}
+
+func Iterate(count int) []int {
+	items := make([]int, count)
+	for i := range items {
+		items[i] = i + 1
+	}
+	return items
 }

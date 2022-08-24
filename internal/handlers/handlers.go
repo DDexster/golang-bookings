@@ -597,11 +597,91 @@ func (repo *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Requ
 }
 
 func (repo *Repository) AdminReservationCalendar(w http.ResponseWriter, r *http.Request) {
-	err := renderer.Template(w, r, "admin-reservations-calendar.page.tmpl", &models.TemplateData{})
+	now := time.Now()
+	if r.URL.Query().Get("y") != "" {
+		year, _ := strconv.Atoi(r.URL.Query().Get("y"))
+		month, _ := strconv.Atoi(r.URL.Query().Get("m"))
+		now = time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	}
+
+	next := now.AddDate(0, 1, 0)
+	prev := now.AddDate(0, -1, 0)
+
+	stringMap := make(map[string]string)
+	dataMap := make(map[string]interface{})
+
+	dataMap["now"] = now
+
+	stringMap["next_month"] = next.Format("01")
+	stringMap["next_month_year"] = next.Format("2006")
+	stringMap["prev_month"] = prev.Format("01")
+	stringMap["prev_month_year"] = prev.Format("2006")
+	stringMap["this_month"] = now.Format("01")
+	stringMap["this_month_year"] = now.Format("2006")
+
+	currentYear, currentMonth, _ := now.Date()
+	currentLocation := now.Location()
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
+
+	intMap := make(map[string]int)
+	intMap["days_in_month"] = lastOfMonth.Day()
+
+	rooms, err := repo.DB.ListAllRooms()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	dataMap["rooms"] = rooms
+
+	for _, room := range rooms {
+		// generate block maps
+		reservationMap := make(map[string]int)
+		blockMap := make(map[string]int)
+		dLayout := "2006-01-2"
+
+		for d := firstOfMonth; d.After(lastOfMonth) == false; d = d.AddDate(0, 0, 1) {
+			reservationMap[d.Format(dLayout)] = 0
+			blockMap[d.Format(dLayout)] = 0
+		}
+
+		// get all restrictions for room
+		restrictions, e := repo.DB.GetRestrictionsForRoomByDates(room.ID, firstOfMonth, lastOfMonth)
+		if e != nil {
+			helpers.ServerError(w, e)
+			return
+		}
+
+		for _, rr := range restrictions {
+			for d := rr.StartDate; d.After(rr.EndDate) == false; d = d.AddDate(0, 0, 1) {
+				if rr.ReservationID > 0 {
+					reservationMap[d.Format(dLayout)] = rr.ReservationID
+				} else {
+					blockMap[d.Format(dLayout)] = rr.ID
+				}
+			}
+		}
+
+		dataMap[fmt.Sprintf("reservation_map_%d", room.ID)] = reservationMap
+		dataMap[fmt.Sprintf("block_map_%d", room.ID)] = blockMap
+
+		repo.App.Session.Put(r.Context(), fmt.Sprintf("block_map_%d", room.ID), blockMap)
+	}
+
+	err = renderer.Template(w, r, "admin-reservations-calendar.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+		Data:      dataMap,
+		IntMap:    intMap,
+	})
 
 	if err != nil {
 		helpers.ServerError(w, err)
 	}
+}
+
+func (repo *Repository) AdminPostReservationCalendar(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (repo *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request) {

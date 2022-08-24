@@ -75,7 +75,11 @@
         </div>
         <hr>
         <input type="submit" class="btn btn-primary" value="Update Reservation">
+        {{if eq $src "cal"}}
+          <a href="#!" onclick="window.history.go(-1)" class="btn btn-warning">Cancel</a>
+        {{else}}
         <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
+        {{end}}
           {{if eq $res.Processed 0}}
             <button class="btn btn-info" id="process-btn">Mark Processed</button>
           {{end}}

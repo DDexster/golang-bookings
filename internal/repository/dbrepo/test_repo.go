@@ -62,6 +62,11 @@ func (repo *testDBRepo) GetRoomById(id int) (models.Room, error) {
 	return room, nil
 }
 
+func (repo *testDBRepo) ListAllRooms() ([]models.Room, error) {
+	var rooms []models.Room
+	return rooms, nil
+}
+
 func (repo *testDBRepo) GetUserById(id int) (models.User, error) {
 	return models.User{}, nil
 }
@@ -103,4 +108,9 @@ func (repo *testDBRepo) RemoveReservation(id int) error {
 
 func (repo *testDBRepo) UpdateProcessedForReservation(id int, processed int) error {
 	return nil
+}
+
+func (repo *testDBRepo) GetRestrictionsForRoomByDates(roomId int, startDate, endDate time.Time) ([]models.RoomRestriction, error) {
+	var restrictions []models.RoomRestriction
+	return restrictions, nil
 }
