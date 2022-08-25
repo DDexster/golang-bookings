@@ -1,1 +1,1 @@
-delete from users;
+delete from users where email = 'admin@bookings.ca';

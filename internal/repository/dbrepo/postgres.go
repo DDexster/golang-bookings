@@ -484,7 +484,7 @@ func (repo *postgresDBRepo) CreateOwnerBlock(roomId int, date time.Time) error {
     `
 	_, err := repo.DB.ExecContext(ctx, stmt,
 		date,
-		date,
+		date.AddDate(0, 0, 1),
 		roomId,
 		2,
 		time.Now(),
