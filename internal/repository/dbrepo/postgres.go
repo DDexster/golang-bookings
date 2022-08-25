@@ -473,3 +473,42 @@ func (repo *postgresDBRepo) GetRestrictionsForRoomByDates(roomId int, startDate,
 
 	return restrictions, nil
 }
+
+func (repo *postgresDBRepo) CreateOwnerBlock(roomId int, date time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmt := `insert into room_restrictions 
+    (start_date, end_date, room_id, restriction_id, created_at, updated_at)
+    values ($1, $2, $3, $4, $5, $6)
+    `
+	_, err := repo.DB.ExecContext(ctx, stmt,
+		date,
+		date,
+		roomId,
+		2,
+		time.Now(),
+		time.Now(),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *postgresDBRepo) RemoveOwnerBlock(restrictionId int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmt := `delete from room_restrictions where id = $1`
+
+	_, err := repo.DB.ExecContext(ctx, stmt, restrictionId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

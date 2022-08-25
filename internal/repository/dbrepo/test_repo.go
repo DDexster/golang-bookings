@@ -114,3 +114,11 @@ func (repo *testDBRepo) GetRestrictionsForRoomByDates(roomId int, startDate, end
 	var restrictions []models.RoomRestriction
 	return restrictions, nil
 }
+
+func (repo *testDBRepo) CreateOwnerBlock(roomId int, date time.Time) error {
+	return nil
+}
+
+func (repo *testDBRepo) RemoveOwnerBlock(restrictionId int) error {
+	return nil
+}

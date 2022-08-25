@@ -29,8 +29,11 @@ func (f *Form) Required(fields ...string) {
 }
 
 func (f *Form) Has(field string) bool {
-	x := f.Values[field][0]
-	return x != ""
+	values := f.Values[field]
+	if len(values) == 0 {
+		return false
+	}
+	return values[0] != ""
 }
 
 func (f *Form) Valid() bool {

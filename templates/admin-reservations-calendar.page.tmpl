@@ -33,52 +33,56 @@
       <div class="clearfix"></div>
 
       <form action="/admin/reservations-calendar" method="post">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
-        {{range $rooms}}
-            {{$roomId := .ID}}
-            {{$blocks := index $.Data (printf "block_map_%d" .ID)}}
-            {{$reservations := index $.Data (printf "reservation_map_%d" .ID)}}
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}"/>
+        <input type="hidden" name="m" value="{{$curMonth}}"/>
+        <input type="hidden" name="y" value="{{$curMonthYear}}"/>
 
-            <div class="mt-5">
-              <h4>{{.RoomName}}</h4>
+          {{range $rooms}}
+              {{$roomId := .ID}}
+              {{$blocks := index $.Data (printf "block_map_%d" .ID)}}
+              {{$reservations := index $.Data (printf "reservation_map_%d" .ID)}}
 
-              <div class="table-responsive bg-secondary">
-                <table class="table table-bordered table-sm">
-                  <tr class="table-dark">
-                      {{range $index := iterate $dim}}
-                        <td class="text-center">
-                            {{$index}}
-                        </td>
-                      {{end}}
-                  </tr>
-                  <tr>
-                      {{range $index := iterate $dim}}
-                          {{$dts := (printf "%s-%s-%d" $curMonthYear $curMonth $index)}}
-                          <td class="text-center bg-light">
-                              {{if gt (index $reservations $dts) 0}}
-                                <a href="/admin/reservations/cal/{{index $reservations $dts}}">
-                                  <span class="text-danger"><strong>R</strong></span>
-                                </a>
-                              {{else}}
-                                <input type="checkbox"
-                                        {{if gt (index $blocks $dts) 0}}
-                                          checked
-                                          name="remove_block_{{$roomId}}_{{$dts}}"
-                                          value="{{index $blocks $dts}}"
-                                        {{else}}
-                                          name="add_block_{{$roomId}}_{{$dts}}"
-                                        {{end}}
-                                />
-                              {{end}}
+              <div class="mt-5">
+                <h4>{{.RoomName}}</h4>
+
+                <div class="table-responsive bg-secondary">
+                  <table class="table table-bordered table-sm">
+                    <tr class="table-dark">
+                        {{range $index := iterate $dim}}
+                          <td class="text-center">
+                              {{$index}}
                           </td>
-                      {{end}}
-                  </tr>
-                </table>
+                        {{end}}
+                    </tr>
+                    <tr>
+                        {{range $index := iterate $dim}}
+                            {{$dts := (printf "%s-%s-%d" $curMonthYear $curMonth $index)}}
+                            <td class="text-center bg-light">
+                                {{if gt (index $reservations $dts) 0}}
+                                  <a href="/admin/reservations/cal/{{index $reservations $dts}}">
+                                    <span class="text-danger"><strong>R</strong></span>
+                                  </a>
+                                {{else}}
+                                  <input type="checkbox"
+                                          {{if gt (index $blocks $dts) 0}}
+                                            checked
+                                            name="remove_block_{{$roomId}}_{{$dts}}"
+                                            value="{{index $blocks $dts}}"
+                                          {{else}}
+                                            name="add_block_{{$roomId}}_{{$dts}}"
+                                            value="1"
+                                          {{end}}
+                                  />
+                                {{end}}
+                            </td>
+                        {{end}}
+                    </tr>
+                  </table>
+                </div>
               </div>
-            </div>
-        {{end}}
+          {{end}}
         <hr>
-        <input type="submit" class="btn btn-primary" value="Save Changes" />
+        <input type="submit" class="btn btn-primary" value="Save Changes"/>
       </form>
 
     </div>

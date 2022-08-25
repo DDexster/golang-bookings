@@ -12,6 +12,7 @@ import (
 	"github.com/DDexster/golang_bookings/internal/repository"
 	"github.com/DDexster/golang_bookings/internal/repository/dbrepo"
 	"github.com/go-chi/chi/v5"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -681,7 +682,69 @@ func (repo *Repository) AdminReservationCalendar(w http.ResponseWriter, r *http.
 }
 
 func (repo *Repository) AdminPostReservationCalendar(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
+	year, _ := strconv.Atoi(r.Form.Get("y"))
+	month, _ := strconv.Atoi(r.Form.Get("m"))
+
+	// process blocks
+	rooms, err := repo.DB.ListAllRooms()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	fmt.Sprintf("%+v", form)
+	// removing blocks
+	for _, room := range rooms {
+		//	get blockMap from session
+		initialBlockMap := repo.App.Session.Get(r.Context(), fmt.Sprintf("block_map_%d", room.ID)).(map[string]int)
+
+		for name, value := range initialBlockMap {
+			if val, ok := initialBlockMap[name]; ok {
+				if val > 0 {
+					if !form.Has(fmt.Sprintf("remove_block_%d_%s", room.ID, name)) {
+						//	Remove restriction by ID
+						log.Println("deleting block", value)
+						err = repo.DB.RemoveOwnerBlock(value)
+						if err != nil {
+							helpers.ServerError(w, err)
+							return
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//handle new blocks
+	for name, _ := range r.PostForm {
+		if strings.HasPrefix(name, "add_block") {
+			splitted := strings.Split(name, "_")
+			roomId, _ := strconv.Atoi(splitted[len(splitted)-2])
+			dateString := splitted[len(splitted)-1]
+			dateFormat := "2006-01-2"
+			date, err := time.Parse(dateFormat, dateString)
+			if err != nil {
+				helpers.ServerError(w, err)
+				return
+			}
+			log.Printf("adding block for room %d, and date %s", roomId, dateString)
+			err = repo.DB.CreateOwnerBlock(roomId, date)
+			if err != nil {
+				helpers.ServerError(w, err)
+				return
+			}
+		}
+	}
+
+	repo.App.Session.Put(r.Context(), "flash", "Changes Applied!")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-calendar?y=%d&m=%d", year, month), http.StatusSeeOther)
 }
 
 func (repo *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request) {
