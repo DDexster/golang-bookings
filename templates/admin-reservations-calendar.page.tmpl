@@ -59,7 +59,7 @@
                             {{$dts := (printf "%s-%s-%d" $curMonthYear $curMonth $index)}}
                             <td class="text-center bg-light">
                                 {{if gt (index $reservations $dts) 0}}
-                                  <a href="/admin/reservations/cal/{{index $reservations $dts}}">
+                                  <a href="/admin/reservations/cal/{{index $reservations $dts}}/show?y={{$curMonthYear}}&m={{$curMonth}}">
                                     <span class="text-danger"><strong>R</strong></span>
                                   </a>
                                 {{else}}

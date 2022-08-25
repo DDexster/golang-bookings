@@ -9,6 +9,8 @@
 {{define "content"}}
     {{$res := index .Data "reservation"}}
     {{$src := index .StringMap "src"}}
+    {{$year := index .StringMap "year"}}
+    {{$month := index .StringMap "month"}}
 
     <div class="col-md-12">
       <h4>Details:</h4>
@@ -23,6 +25,8 @@
               novalidate
       >
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="year" value="{{$year}}">
+        <input type="hidden" name="month" value="{{$month}}">
 
         <div class="form-group mt-3">
           <label for="first_name">First Name:</label>
@@ -91,27 +95,29 @@
 {{define "js"}}
     {{$src := index .StringMap "src"}}
     {{$res := index .Data "reservation"}}
+    {{$year := index .StringMap "year"}}
+    {{$month := index .StringMap "month"}}
 
     <script>
-      function processRes(resId, src) {
+      function processRes(resId, src, year, month) {
         attention.custom({
           icon: "warning",
           msg: "Are You Sure?",
           callback: (result) => {
             if (result !== false) {
-              window.location.href = `/admin/process-reservation/${src}/${resId}`;
+              window.location.href = `/admin/process-reservation/${src}/${resId}/do?y=${year}&m=${month}`;
             }
           }
         })
       }
 
-      function removeRes(resId, src){
+      function removeRes(resId, src, year, month){
         attention.custom({
           icon: "warning",
           msg: "Are You Sure To Remove?",
           callback: (result) => {
             if (result !== false) {
-              window.location.href = `/admin/remove-reservation/${src}/${resId}`;
+              window.location.href = `/admin/remove-reservation/${src}/${resId}/do?y=${year}&m=${month}`;
             }
           }
         })
@@ -120,14 +126,14 @@
       if (processBtn) {
         processBtn.addEventListener("click", (e) => {
           e.preventDefault();
-          processRes({{$res.ID}}, "{{$src}}");
+          processRes({{$res.ID}}, "{{$src}}", "{{$year}}", "{{$month}}");
         })
       }
       deleteBtn = document.getElementById("remove-btn")
       if (deleteBtn) {
         deleteBtn.addEventListener("click", (e) => {
           e.preventDefault();
-          removeRes({{$res.ID}}, "{{$src}}");
+          removeRes({{$res.ID}}, "{{$src}}", "{{$year}}", "{{$month}}");
         })
       }
 

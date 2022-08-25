@@ -750,13 +750,16 @@ func (repo *Repository) AdminPostReservationCalendar(w http.ResponseWriter, r *h
 func (repo *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Request) {
 	exploded := strings.Split(r.RequestURI, "/")
 
-	src := exploded[len(exploded)-2]
+	src := exploded[len(exploded)-3]
 
-	id, err := strconv.Atoi(exploded[len(exploded)-1])
+	id, err := strconv.Atoi(exploded[len(exploded)-2])
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
+
+	year := r.URL.Query().Get("y")
+	month := r.URL.Query().Get("m")
 
 	reservation, err := repo.DB.GetReservationById(id)
 	if err != nil {
@@ -768,6 +771,8 @@ func (repo *Repository) AdminShowReservation(w http.ResponseWriter, r *http.Requ
 
 	data["reservation"] = reservation
 	stringMap["src"] = src
+	stringMap["month"] = month
+	stringMap["year"] = year
 
 	err = renderer.Template(w, r, "admin-reservation.page.tmpl", &models.TemplateData{
 		Data:      data,
@@ -815,8 +820,17 @@ func (repo *Repository) AdminUpdateReservation(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	year := r.Form.Get("year")
+	month := r.Form.Get("month")
+
+	log.Println(year)
+
 	repo.App.Session.Put(r.Context(), "flash", "Reservation Updated")
-	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+	if year == "" {
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-calendar?y=%s&m=%s", year, month), http.StatusSeeOther)
+	}
 }
 
 func (repo *Repository) AdminProcessReservation(w http.ResponseWriter, r *http.Request) {
@@ -833,8 +847,15 @@ func (repo *Repository) AdminProcessReservation(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	year := r.URL.Query().Get("y")
+	month := r.URL.Query().Get("m")
+
 	repo.App.Session.Put(r.Context(), "flash", "Reservation Processed!")
-	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+	if year == "" {
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-calendar?y=%s&m=%s", year, month), http.StatusSeeOther)
+	}
 }
 
 func (repo *Repository) AdminRemoveReservation(w http.ResponseWriter, r *http.Request) {
@@ -851,6 +872,13 @@ func (repo *Repository) AdminRemoveReservation(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	year := r.URL.Query().Get("y")
+	month := r.URL.Query().Get("m")
+
 	repo.App.Session.Put(r.Context(), "flash", "Reservation Removed!")
-	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+	if year == "" {
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-calendar?y=%s&m=%s", year, month), http.StatusSeeOther)
+	}
 }
