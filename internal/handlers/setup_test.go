@@ -18,7 +18,11 @@ import (
 	"time"
 )
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"humanizeDate": renderer.HumanizeDate,
+	"formatDate":   renderer.FormatDate,
+	"iterate":      renderer.Iterate,
+}
 
 var app config.AppConfig
 var session *scs.SessionManager
@@ -30,6 +34,7 @@ func TestMain(m *testing.M) {
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
 	gob.Register(models.RoomRestriction{})
+	gob.Register(map[string]int{})
 
 	app.UseCache = true
 	app.InProduction = false
@@ -96,6 +101,25 @@ func getRoutes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./static/"))
 
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
+
+	mux.Get("/contact", Repo.Contact)
+
+	mux.Get("/user/login", Repo.ShowLogin)
+	mux.Post("/user/login", Repo.PostShowLogin)
+	mux.Get("/user/logout", Repo.Logout)
+
+	mux.Route("/admin", func(m chi.Router) {
+		m.Get("/dashboard", Repo.AdminDashboard)
+		m.Get("/reservations-new", Repo.AdminNewReservations)
+		m.Get("/reservations-all", Repo.AdminAllReservations)
+		m.Get("/reservations-calendar", Repo.AdminReservationCalendar)
+		m.Post("/reservations-calendar", Repo.AdminPostReservationCalendar)
+
+		m.Get("/process-reservation/{src}/{id}/do", Repo.AdminProcessReservation)
+		m.Get("/remove-reservation/{src}/{id}/do", Repo.AdminRemoveReservation)
+		m.Get("/reservations/{src}/{id}/show", Repo.AdminShowReservation)
+		m.Post("/reservations/{src}/{id}", Repo.AdminUpdateReservation)
+	})
 
 	return mux
 }

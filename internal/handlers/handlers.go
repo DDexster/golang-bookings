@@ -167,6 +167,12 @@ func (repo *Repository) PostReservation(w http.ResponseWriter, r *http.Request) 
 		data["reservation"] = reservation
 		stringMap := make(map[string]string)
 
+		dateLayout := "2006-01-02"
+		sd := reservation.StartDate.Format(dateLayout)
+		ed := reservation.EndDate.Format(dateLayout)
+
+		stringMap["start_date"] = sd
+		stringMap["end_date"] = ed
 		stringMap["pageTitle"] = "Reservation"
 
 		err = renderer.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
