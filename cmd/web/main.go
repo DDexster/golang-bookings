@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"github.com/DDexster/golang_bookings/internal/config"
 	"github.com/DDexster/golang_bookings/internal/driver"
@@ -54,11 +55,26 @@ func run() (*driver.DB, error) {
 	gob.Register(models.RoomRestriction{})
 	gob.Register(map[string]int{})
 
+	isProduction := flag.Bool("production", true, "Application mode")
+	useCache := flag.Bool("cache", true, "Use template cache")
+	dbHost := flag.String("dbhost", "localhost", "Database host")
+	dbName := flag.String("dbname", "", "Database name")
+	dbUser := flag.String("dbuser", "", "Database user name")
+	dbPass := flag.String("dbpass", "", "Database user password")
+	dbPort := flag.String("dbport", "5432", "DB port")
+	dbSSL := flag.String("dbssl", "disable", "DB ssl settings (disable, prefer, require)")
+
+	flag.Parse()
+	if *dbName == "" || *dbUser == "" {
+		fmt.Println("Missing required flags")
+		os.Exit(1)
+	}
+
 	mailChan := make(chan models.MailData)
 	app.MailChan = mailChan
 
-	app.UseCache = false
-	app.InProduction = false
+	app.UseCache = *useCache
+	app.InProduction = *isProduction
 
 	infoLog = log.New(os.Stdout, "INFO:\t", log.Ldate|log.Ltime)
 	errorLog = log.New(os.Stdout, "ERROR:\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -76,7 +92,15 @@ func run() (*driver.DB, error) {
 
 	// connect to DB
 	log.Println("Connecting to DB")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=ddexster password=")
+	dbString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
+		*dbHost,
+		*dbPort,
+		*dbName,
+		*dbUser,
+		*dbPass,
+		*dbSSL,
+	)
+	db, err := driver.ConnectSQL(dbString)
 	if err != nil {
 		log.Fatal("Cannot connect to DB")
 	}
